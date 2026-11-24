@@ -130,12 +130,3 @@ streamlit run app.py
 ```bash
 pytest
 ```
-
----
-
-## Cloud Deployment (Streamlit Community Cloud / Hugging Face Spaces)
-
-1. Push the repository to GitHub (ensure `.ENV`, `.backup/`, and `_backups/` are excluded via `.gitignore`).
-2. Create a new app on **Streamlit Community Cloud** (`share.streamlit.io`) pointing to `app.py` (or a **Streamlit Space** on Hugging Face).
-3. Add all keys from `.ENV` into the platform's **Secrets / Environment Variables** settings.
-4. Deploy and verify database connectivity via **Upload History** (`pages/8_Upload_History.py`).
