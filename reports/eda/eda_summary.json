@@ -1,0 +1,60 @@
+{
+    "shape": {
+        "rows": 10000,
+        "columns": 10
+    },
+    "dtypes": {
+        "review_id": "object",
+        "customer_id": "object",
+        "review_text": "object",
+        "rating": "int64",
+        "review_date": "object",
+        "product_category": "object",
+        "product_name": "object",
+        "source": "object",
+        "sentiment_label": "object",
+        "aspect_labels": "object"
+    },
+    "missing_values": {
+        "review_id": 0,
+        "customer_id": 0,
+        "review_text": 0,
+        "rating": 0,
+        "review_date": 0,
+        "product_category": 0,
+        "product_name": 0,
+        "source": 0,
+        "sentiment_label": 0,
+        "aspect_labels": 0
+    },
+    "duplicate_rows": 0,
+    "duplicate_review_ids": 0,
+    "rating_distribution": {
+        "1": 1484,
+        "2": 815,
+        "3": 2290,
+        "4": 1981,
+        "5": 3430
+    },
+    "sentiment_distribution": {
+        "Positive": 4533,
+        "Neutral": 2033,
+        "Negative": 1978,
+        "Mixed": 1456
+    },
+    "category_distribution": {
+        "E-commerce": 1683,
+        "Hospitality": 1679,
+        "Grocery": 1679,
+        "Fashion": 1675,
+        "Food delivery": 1670,
+        "Electronics": 1614
+    },
+    "review_length_stats": {
+        "mean": 92.3975,
+        "median": 83.0,
+        "min": 57,
+        "max": 223,
+        "std": 34.76510542203922
+    }
+}

@@ -1,0 +1,117 @@
+{
+    "model_version": "v2.0.0",
+    "created_at": "2026-11-24 13:19:45 UTC",
+    "best_model_architecture": "TFIDF_LogisticRegression",
+    "classes": [
+        "Mixed",
+        "Negative",
+        "Neutral",
+        "Positive"
+    ],
+    "dataset_split": {
+        "total_samples": 15000,
+        "train_samples": 10500,
+        "validation_samples": 2250,
+        "test_samples": 2250
+    },
+    "validation_comparison": {
+        "TFIDF_LogisticRegression": {
+            "val_accuracy": 1.0,
+            "val_macro_precision": 1.0,
+            "val_macro_recall": 1.0,
+            "val_macro_f1": 1.0
+        },
+        "TFIDF_LinearSVC_Calibrated": {
+            "val_accuracy": 1.0,
+            "val_macro_precision": 1.0,
+            "val_macro_recall": 1.0,
+            "val_macro_f1": 1.0
+        },
+        "TFIDF_MultinomialNB": {
+            "val_accuracy": 1.0,
+            "val_macro_precision": 1.0,
+            "val_macro_recall": 1.0,
+            "val_macro_f1": 1.0
+        }
+    },
+    "test_performance": {
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "classification_report": {
+            "Mixed": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 312.0
+            },
+            "Negative": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 493.0
+            },
+            "Neutral": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 404.0
+            },
+            "Positive": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 1041.0
+            },
+            "accuracy": 1.0,
+            "macro avg": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 2250.0
+            },
+            "weighted avg": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 2250.0
+            }
+        },
+        "confusion_matrix": {
+            "labels": [
+                "Mixed",
+                "Negative",
+                "Neutral",
+                "Positive"
+            ],
+            "matrix": [
+                [
+                    312,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0,
+                    493,
+                    0,
+                    0
+                ],
+                [
+                    0,
+                    0,
+                    404,
+                    0
+                ],
+                [
+                    0,
+                    0,
+                    0,
+                    1041
+                ]
+            ]
+        }
+    },
+    "limitations_disclaimer": "Model evaluated on combinatorial multi-aspect synthetic customer review benchmark. Metrics reflect performance on domain-specific vocabulary and negation patterns. Continuous fine-tuning on organic enterprise customer feedback is recommended prior to live deployment."
+}

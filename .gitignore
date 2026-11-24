@@ -1,0 +1,48 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.ENV
+.env.*
+!.env.example
+.venv
+env/
+venv/
+ENV/
+_backups/
+.backup/
+
+# Streamlit config and caches
+.streamlit/config.toml
+.streamlit/secrets.toml
+
+# Operating System files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.ntuser
+
+# Model binaries and metadata generated locally
+# (Exclude them if you only want to commit code, but we keep models tracking controlled)
+# models/*.joblib
+
+# OS generated files
+.DS_Store
+Code snippet
+# Test cache & temp/audit files
+.pytest_cache/
+temp_*.py
+Revio_Folder_Tree.txt
+Revio_Project_Audit.txt
+Revio_Project_Structure.txt
+
+# Database backup file
+src/database/db_backup_*.py
