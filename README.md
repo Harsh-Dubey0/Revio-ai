@@ -1,5 +1,10 @@
 # Revio AI — Customer Review Intelligence & Analytics Platform
 
+**Live App:** [https://revio-ai.streamlit.app/](https://revio-ai.streamlit.app/)
+
+
+> **Live Web App:** [Open Revio AI Intelligence Engine](https://revio-ai.streamlit.app/)
+
 **Revio AI** is an end-to-end customer feedback analytics platform built with **Streamlit**, **PostgreSQL (Supabase)**, **Scikit-Learn / NLP pipelines**, and **LLM-powered business insights**. It ingests CSV review batches, runs multi-label sentiment, emotion, aspect, and priority scoring, stores results in PostgreSQL, and surfaces executive analytics across an interactive multi-page dashboard.
 
 ---
