@@ -3,7 +3,20 @@ from __future__ import annotations
 from typing import Any, Dict
 import streamlit as st
 
+DEFAULT_THEME = "Light"
+
 THEMES: Dict[str, Dict[str, str]] = {
+    "Light": {
+        "bg": "#F8FAFC",
+        "surface": "#FFFFFF",
+        "surface_alt": "#F1F5F9",
+        "text": "#0F172A",
+        "muted": "#475569",
+        "border": "#CBD5E1",
+        "accent": "#4F46E5",
+        "accent_soft": "rgba(79, 70, 229, 0.10)",
+        "plotly_template": "plotly_white",
+    },
     "Dark": {
         "bg": "#0E1117",
         "surface": "#161B22",
@@ -26,23 +39,13 @@ THEMES: Dict[str, Dict[str, str]] = {
         "accent_soft": "rgba(6, 182, 212, 0.16)",
         "plotly_template": "plotly_dark",
     },
-    "Light": {
-        "bg": "#F8FAFC",
-        "surface": "#FFFFFF",
-        "surface_alt": "#F1F5F9",
-        "text": "#0F172A",
-        "muted": "#475569",
-        "border": "#CBD5E1",
-        "accent": "#4F46E5",
-        "accent_soft": "rgba(79, 70, 229, 0.10)",
-        "plotly_template": "plotly_white",
-    },
 }
 
 
 def get_active_theme_name() -> str:
-    theme = st.session_state.get("revio_theme", "Dark")
-    return theme if theme in THEMES else "Dark"
+    if "revio_theme" not in st.session_state or st.session_state["revio_theme"] not in THEMES:
+        st.session_state["revio_theme"] = DEFAULT_THEME
+    return st.session_state["revio_theme"]
 
 
 def get_theme_palette() -> Dict[str, str]:
