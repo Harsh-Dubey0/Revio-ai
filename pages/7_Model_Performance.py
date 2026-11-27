@@ -1,12 +1,10 @@
 import json
-import os
 import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import streamlit as st
 
@@ -14,7 +12,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-st.set_page_config(page_title="Model Performance • Revio AI", page_icon="🎯", layout="wide")
+st.set_page_config(page_title="Model Performance • Revio AI", layout="wide")
 
 from config.settings import settings
 from src.utils.theme import apply_page_theme, optimize_chart
@@ -25,11 +23,25 @@ compact_mode = bool(st.session_state.get("revio_compact_cards", False))
 card_pad = "14px 16px" if compact_mode else "18px 20px"
 
 
+def to_safe_rel_path(raw_path: str | Path) -> str:
+    p = Path(str(raw_path))
+    try:
+        return p.resolve().relative_to(ROOT_DIR.resolve()).as_posix()
+    except Exception:
+        parts = p.parts
+        for anchor in ("models", "data", "reports", "config", "src"):
+            if anchor in parts:
+                idx = parts.index(anchor)
+                return Path(*parts[idx:]).as_posix()
+        return p.name
+
+
 @st.cache_data(show_spinner=False)
 def load_metadata(path_str: str, mtime: float) -> tuple[dict | None, str | None]:
     path = Path(path_str)
+    safe_name = to_safe_rel_path(path)
     if not path.exists():
-        return None, f"Metadata file not found at `{path}`."
+        return None, f"Metadata file not found at `{safe_name}`."
     try:
         with path.open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -60,23 +72,27 @@ def build_confusion_fig(matrix: list[list[int]], labels: list[str], normalized: 
     if normalized:
         row_sums = arr.sum(axis=1).replace(0, 1)
         display_df = arr.div(row_sums, axis=0)
-        annotations = [[f"{val:.1%}" for val in row] for row in display_df.values]
+        text_matrix = [[f"{val:.1%}" for val in row] for row in display_df.values]
         z_vals = display_df.values.tolist()
         hover_tmpl = "True: <b>%{y}</b> → Pred: <b>%{x}</b><br>Rate: <b>%{z:.1%}</b><extra></extra>"
     else:
-        annotations = [[f"{int(val):,}" for val in row] for row in arr.values]
+        text_matrix = [[f"{int(val):,}" for val in row] for row in arr.values]
         z_vals = arr.values.tolist()
         hover_tmpl = "True: <b>%{y}</b> → Pred: <b>%{x}</b><br>Count: <b>%{z:,}</b><extra></extra>"
 
-    fig = ff.create_annotated_heatmap(
-        z=z_vals,
-        x=labels,
-        y=labels,
-        annotation_text=annotations,
-        colorscale="Blues",
-        showscale=True,
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=z_vals,
+            x=labels,
+            y=labels,
+            text=text_matrix,
+            texttemplate="%{text}",
+            textfont={"size": 12},
+            colorscale="Blues",
+            showscale=True,
+            hovertemplate=hover_tmpl,
+        )
     )
-    fig.update_traces(hovertemplate=hover_tmpl)
     fig.update_layout(
         xaxis_title="Predicted Label",
         yaxis_title="True Label",
@@ -230,10 +246,10 @@ def compute_calibration_metrics(df_cal: pd.DataFrame, n_bins: int = 10) -> tuple
 st.markdown(
     """
     <div class="revio-hero">
-        <div class="revio-pill">🎯 Revio AI • Evaluation & Governance</div>
+        <div class="revio-pill">Revio AI • Evaluation</div>
         <h1 style="margin: 0 0 6px 0; font-size: 2rem;">Model Performance & Transparency</h1>
         <p class="revio-muted" style="margin: 0; font-size: 0.98rem;">
-            Production evaluation telemetry, class-level diagnostics, confidence calibration, and governance card.
+            Production evaluation telemetry, class-level diagnostics, and confidence calibration.
         </p>
     </div>
     """,
@@ -241,13 +257,14 @@ st.markdown(
 )
 
 meta_path = Path(settings.MODEL_METADATA_PATH)
+safe_meta_path = to_safe_rel_path(meta_path)
 if not meta_path.exists():
     st.markdown(
         f"""
         <div class="revio-web-card" style="padding: {card_pad};">
             <div class="revio-card-title">Model metadata artifact missing</div>
             <div class="revio-card-sub" style="margin-bottom: 0;">
-                Expected file at <code>{meta_path}</code>. Run the training and evaluation pipeline to generate it.
+                Expected file at <code>{safe_meta_path}</code>. Run the training and evaluation pipeline to generate it.
             </div>
         </div>
         """,
@@ -263,7 +280,7 @@ act_l, act_m, act_r = st.columns([4.8, 1.6, 1.6], vertical_alignment="center")
 with act_l:
     st.markdown(f"<span class='revio-pill' style='margin: 0;'>Artifact: {meta_path.name}</span>", unsafe_allow_html=True)
 with act_m:
-    if st.button("↻ Reload", use_container_width=True, help="Force reload metadata from disk"):
+    if st.button("Reload", use_container_width=True, help="Force reload metadata from disk"):
         load_metadata.clear()
         load_calibration_dataframe.clear()
         st.rerun()
@@ -274,7 +291,7 @@ if load_err or not meta:
 
 with act_r:
     st.download_button(
-        "⬇ Model Card",
+        "Model Card",
         data=json.dumps(meta, indent=2).encode("utf-8"),
         file_name=f"{meta.get('model_version', 'model')}_card.json",
         mime="application/json",
@@ -326,8 +343,8 @@ cm_labels = cm_data.get("labels")
 if total_support == 0 and cm_matrix:
     total_support = int(np.sum(np.array(cm_matrix, dtype=float)))
 
-tab_diag, tab_cal, tab_errors, tab_gov = st.tabs(
-    ["📊 Diagnostics", "🎯 Confidence & Calibration", "🔎 Error Analysis", "🛡️ Governance & Artifacts"]
+tab_diag, tab_cal, tab_errors = st.tabs(
+    ["Diagnostics", "Confidence & Calibration", "Error Analysis"]
 )
 
 with tab_diag:
@@ -419,11 +436,11 @@ with tab_cal:
     df_cal, is_sim = load_calibration_dataframe(json.dumps(meta, default=str), accuracy_val, total_support)
     if is_sim:
         st.caption(
-            "ℹ️ Showing **simulated probability diagnostics** calibrated to your reported test accuracy. "
+            "Showing simulated probability diagnostics calibrated to your reported test accuracy. "
             "Provide `calibration_records` in metadata or `EVAL_PREDICTIONS_PATH` in settings to plot actual model probabilities."
         )
     else:
-        st.caption("Showing **live evaluation probability telemetry** from recorded predictions.")
+        st.caption("Showing live evaluation probability telemetry from recorded predictions.")
 
     ctrl_l, ctrl_r = st.columns([2, 1.2], vertical_alignment="center")
     with ctrl_l:
@@ -603,48 +620,3 @@ with tab_errors:
             "`misclassified_samples` list in your model metadata JSON or configure `MODEL_ERRORS_PATH`."
         )
     st.markdown("</div>", unsafe_allow_html=True)
-
-with tab_gov:
-    st.markdown("<br>", unsafe_allow_html=True)
-    disclaimer = meta.get("limitations_disclaimer")
-    if disclaimer:
-        st.warning(f"**Limitations & Disclaimer:** {disclaimer}", icon="⚠️")
-    else:
-        st.info("No explicit limitations disclaimer was provided in the model metadata.")
-
-    st.markdown(
-        f"""
-        <div class="revio-web-card" style="padding: {card_pad};">
-            <div class="revio-card-title">Artifact & Environment Check</div>
-            <div class="revio-card-sub">Verify presence and size of model and evaluation artifacts on disk.</div>
-        """,
-        unsafe_allow_html=True,
-    )
-    art_rows = [
-        {
-            "Artifact": "Model Metadata JSON",
-            "Path": str(meta_path),
-            "Status": "Present",
-            "Size (KB)": round(stat.st_size / 1024, 2),
-        }
-    ]
-    for path_key in ("model_path", "checkpoint_path", "tokenizer_path"):
-        raw_p = meta.get(path_key) or getattr(settings, path_key.upper(), None)
-        if raw_p:
-            p_obj = Path(raw_p)
-            exists = p_obj.exists()
-            size_mb = round(p_obj.stat().st_size / (1024 * 1024), 2) if exists and p_obj.is_file() else None
-            art_rows.append(
-                {
-                    "Artifact": path_key.replace("_", " ").title(),
-                    "Path": str(p_obj),
-                    "Status": "Present" if exists else "Missing",
-                    "Size (KB)": f"{size_mb} MB" if size_mb is not None else "—",
-                }
-            )
-    st.dataframe(pd.DataFrame(art_rows), hide_index=True, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    extra_meta = {k: v for k, v in meta.items() if k != "test_performance"}
-    with st.expander("Full Model Card JSON", expanded=False):
-        st.json(extra_meta, expanded=False)
