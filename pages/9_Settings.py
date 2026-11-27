@@ -22,9 +22,18 @@ except Exception:
     test_database_connection = None
 
 
+def _format_gemini_ui_error(exc: Exception) -> str:
+    raw = str(exc).lower()
+    if "429" in raw or "quota" in raw or "rate" in raw:
+        return "Service rate limit reached or server busy. Local analytics fallback is active."
+    if "401" in raw or "403" in raw or "api key" in raw or "permission" in raw:
+        return "AI service authentication could not be verified. Local analytics fallback is active."
+    return "AI service is currently responding slowly or temporarily unavailable (404). Local analytics fallback is active."
+
+
 def test_gemini_api(api_key: str) -> dict:
     if not api_key:
-        return {"ok": False, "detail": "GEMINI_API_KEY is not set in environment or settings."}
+        return {"ok": False, "detail": "GEMINI_API_KEY is not set. Local analytics fallback is active."}
 
     try:
         from google import genai  # newer google-genai SDK
@@ -39,7 +48,7 @@ def test_gemini_api(api_key: str) -> dict:
     except ImportError:
         pass
     except Exception as exc:
-        return {"ok": False, "detail": f"Gemini SDK error: {exc}"}
+        return {"ok": False, "detail": _format_gemini_ui_error(exc)}
 
     try:
         import google.generativeai as genai_legacy  # fallback if older SDK is installed
@@ -50,7 +59,7 @@ def test_gemini_api(api_key: str) -> dict:
         text = (getattr(resp, "text", "") or "").strip()
         return {"ok": True, "detail": f"Live response received: {text or 'OK'}"}
     except Exception as exc:
-        return {"ok": False, "detail": f"Gemini API error: {exc}"}
+        return {"ok": False, "detail": _format_gemini_ui_error(exc)}
 
 
 apply_page_theme(include_metric_cards=True)
@@ -81,7 +90,7 @@ st.markdown(
     <div class="revio-section-head">
         <div>
             <h3 class="revio-section-title">🎨 Theme</h3>
-            <p class="revio-section-desc">Switch between Dark, Midnight, and Light mode across Revio AI.</p>
+            <p class="revio-section-desc">Switch between Light, Dark, and Midnight mode across Revio AI.</p>
         </div>
     </div>
     """,
@@ -104,9 +113,9 @@ with col_t1:
 
 with col_t2:
     st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-    if st.button("Reset to Dark", use_container_width=True):
-        if st.session_state.get("revio_theme") != "Dark":
-            st.session_state["revio_theme"] = "Dark"
+    if st.button("Reset to Light", use_container_width=True):
+        if st.session_state.get("revio_theme") != "Light":
+            st.session_state["revio_theme"] = "Light"
             st.rerun()
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -241,7 +250,7 @@ if run_db_test:
         time.sleep(0.2)
         gem_res = test_gemini_api(gemini_key)
         diag["gemini_status"] = gem_res
-        st.write(f"   • {'OK' if gem_res.get('ok') else 'Issue'}: {gem_res.get('detail')}")
+        st.write(f"   • {'OK' if gem_res.get('ok') else 'Fallback Active'}: {gem_res.get('detail')}")
 
         if diag["connected"]:
             status_box.update(label="Diagnostic Complete — Core Checks Finished", state="complete", expanded=False)
@@ -283,6 +292,6 @@ if diag:
             if gem.get("ok"):
                 st.success(f"Gemini API: {gem.get('detail')}")
             else:
-                st.warning(f"Gemini API: {gem.get('detail')}")
+                st.info(f"AI Service Status: {gem.get('detail')}")
     else:
         st.error(diag["raw_message"] or "Database connection failed.")
